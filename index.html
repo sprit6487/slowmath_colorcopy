@@ -316,6 +316,26 @@
     100% { transform: scale(1); }
   }
 
+  /* Small phones (≤ 380px) */
+  @media (max-width: 380px) {
+    .app { padding: 16px 12px; }
+    .brand h1, .login-logo-area h1 { font-size: 1.5rem; }
+    .mode-card { padding: 14px 12px; border-radius: 16px; }
+    .mode-card h2 { font-size: 0.95rem; }
+    .game-container { padding: 14px 8px; border-radius: 16px; }
+    .game-boards { gap: 10px; }
+    .color-btn { width: 34px; height: 34px; }
+    .palette { gap: 6px; margin: 10px 0 4px; }
+    .action-btn { padding: 10px 0; font-size: 0.85rem; }
+    .board-label { font-size: 0.7rem; padding: 2px 8px; }
+    .game-label { font-size: 0.78rem; margin-bottom: 8px; }
+  }
+
+  /* Medium phones (≤ 420px) */
+  @media (max-width: 420px) {
+    .game-boards { gap: 12px; }
+  }
+
   /* Tablet & Desktop */
   @media (min-width: 768px) {
     body { align-items: center; padding: 32px; }
@@ -327,6 +347,14 @@
     .login-view { min-height: auto; padding: 60px 40px; }
     .splash-title { font-size: 1.8rem; }
     .splash-subtitle { font-size: 0.9rem; }
+    .game-boards { gap: 28px; }
+    .color-btn { width: 44px; height: 44px; }
+    .action-btn { padding: 14px 0; font-size: 1rem; }
+  }
+
+  /* Large tablets / Desktop */
+  @media (min-width: 1024px) {
+    .app { max-width: 600px; padding: 48px 44px; }
   }
 </style>
 </head>
@@ -748,8 +776,12 @@ function nextQuestion() {
 }
 
 function getCellSize() {
-  // Responsive: fit within available space
-  const maxBoardWidth = 180;
+  // Responsive: fit within available screen width
+  const screenW = window.innerWidth;
+  // Each board takes ~45% of container width, minus padding
+  const containerW = Math.min(screenW, 480) - 40; // app padding
+  const boardW = Math.floor(containerW * 0.42);
+  const maxBoardWidth = Math.min(boardW, 180);
   const gap = 3;
   return Math.min(Math.floor((maxBoardWidth - gap * (gridSize - 1)) / gridSize), 50);
 }
