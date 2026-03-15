@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>느린아이 똑같이 맞추기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --warm-50: #FDFCFA; --warm-100: #FAF7F2; --warm-200: #F3EDE4;
+    --warm-300: #E0D5C5; --warm-400: #B8AD9E; --warm-500: #8C7E6A;
+    --warm-600: #6B5F50; --warm-700: #4A4035; --warm-800: #2E261D;
+    --border: #E8E2DA; --border-light: #F0ECE6;
+    --app-blue: #6BADE8; --app-blue-light: #D9EDFC; --app-blue-soft: #EEF6FD;
+    --app-orange: #F0A050; --app-orange-light: #FDE8C8; --app-orange-soft: #FFF6EB;
+    --app-green: #5BC886; --app-green-light: #D4F5E0;
+    --app-red: #F07070; --app-red-light: #FDE8E8;
+    --bg: #F5F1EB;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    min-height: 100vh; min-height: 100dvh;
+    display: flex; justify-content: center; align-items: flex-start;
+    color: var(--warm-700);
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+  .hidden { display: none !important; }
+
+  .app {
+    width: 100%; max-width: 480px;
+    min-height: 100dvh;
+    background: #fff;
+    padding: 24px 20px;
+    padding-top: max(24px, env(safe-area-inset-top));
+    padding-bottom: max(24px, env(safe-area-inset-bottom));
+    display: flex; flex-direction: column; align-items: center;
+    position: relative;
+  }
+
+  /* ===== Splash Screen ===== */
+  .splash-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: #FFFFFF;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    z-index: 9999; transition: opacity 0.5s ease-out;
+  }
+  .splash-overlay.fade-out { opacity: 0; pointer-events: none; }
+  .splash-logo { animation: splashFloat 2.4s ease-in-out infinite; margin-bottom: 24px; }
+  .splash-title { font-size: 1.4rem; font-weight: 900; letter-spacing: -0.025em; margin-bottom: 8px; }
+  .splash-subtitle { color: #B8B0A8; font-size: 0.8rem; font-weight: 500; margin-bottom: 48px; }
+  @keyframes splashFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+
+  /* ===== Login View ===== */
+  .login-view {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    flex: 1; min-height: 100dvh;
+    padding: 40px 20px; width: 100%;
+  }
+  .login-logo-area { text-align: center; margin-bottom: 48px; }
+  .login-logo-area .turtle-svg { display: inline-block; margin-bottom: 12px; }
+  .login-logo-area h1 { font-size: 1.875rem; font-weight: 900; letter-spacing: -0.025em; margin-top: 8px; }
+  .login-subtitle { color: var(--warm-400); font-size: 0.9375rem; margin-top: 4px; }
+  .login-buttons { width: 100%; max-width: 320px; display: flex; flex-direction: column; gap: 12px; }
+  .login-btn {
+    display: flex; align-items: center; justify-content: center;
+    gap: 10px; width: 100%; padding: 14px 20px;
+    border-radius: 12px; border: none;
+    font-size: 0.9375rem; font-weight: 600;
+    font-family: 'Noto Sans KR', sans-serif;
+    cursor: pointer; transition: transform 0.1s;
+  }
+  .login-btn:active { transform: scale(0.97); }
+  .login-btn svg { flex-shrink: 0; }
+  .login-btn.kakao { background: #FEE500; color: #191919; }
+  .login-btn.naver { background: #03C75A; color: #fff; }
+  .login-btn.google { background: #fff; color: #444; border: 1.5px solid #DADCE0; }
+  .login-btn.facebook { background: #1877F2; color: #fff; }
+
+  /* ===== Start View ===== */
+  #start-view { width: 100%; display: flex; flex-direction: column; align-items: center; }
+  .brand { display: flex; flex-direction: column; align-items: center; margin-bottom: 2px; }
+  .brand .turtle-svg { display: inline-block; margin-bottom: 12px; }
+  .brand h1 { font-size: 1.875rem; font-weight: 900; letter-spacing: -0.025em; }
+  .brand-sub { font-size: 0.8rem; color: var(--warm-400); margin-bottom: 24px; font-weight: 500; }
+
+  /* Mode Cards */
+  .mode-card {
+    background: #fff; border: 2px solid var(--border);
+    border-radius: 20px; padding: 20px 18px; width: 100%;
+    margin-bottom: 12px; text-align: center;
+    transition: transform 0.12s, box-shadow 0.12s;
+  }
+  .mode-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.05); }
+  .mode-card:active { transform: scale(0.98); }
+  .mode-card h2 { font-size: 1.05rem; font-weight: 700; color: var(--warm-700); margin-bottom: 4px; }
+  .mode-card .desc { font-size: 0.75rem; color: var(--warm-400); margin-bottom: 14px; }
+  .mode-card .mode-preview {
+    display: flex; justify-content: center; align-items: center;
+    margin-bottom: 14px; min-height: 60px; gap: 4px;
+  }
+  .mode-btns { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+
+  /* Grid size selector */
+  .grid-selector {
+    display: flex; align-items: center; gap: 6px; justify-content: center; margin-bottom: 4px;
+  }
+  .grid-label { font-size: 0.78rem; color: var(--warm-400); font-weight: 600; margin-right: 2px; }
+  .grid-btn {
+    padding: 5px 14px; border-radius: 16px; border: 1.5px solid var(--border);
+    background: white; color: var(--warm-500); font-size: 0.78rem; font-weight: 600;
+    cursor: pointer; font-family: inherit; transition: all 0.15s;
+  }
+  .grid-btn.selected {
+    background: var(--app-blue-light); border-color: var(--app-blue); color: var(--app-blue);
+  }
+
+  .mode-start {
+    width: 100%; padding: 12px; font-size: 0.95rem; font-weight: 700;
+    background: var(--app-blue); color: white; border: none; border-radius: 12px;
+    cursor: pointer; font-family: inherit; transition: all 0.12s;
+  }
+  .mode-start:hover, .mode-start:active {
+    background: #5A9CD8; transform: scale(0.98);
+  }
+
+  /* Preview grid */
+  .preview-grid {
+    display: inline-grid; gap: 3px; border-radius: 8px;
+    background: var(--warm-300); padding: 3px;
+  }
+  .preview-cell {
+    width: 18px; height: 18px; border-radius: 3px;
+  }
+
+  /* ===== Settings ===== */
+  .settings-section { width: 100%; margin-top: 6px; }
+  .setting-divider { border-top: 1.5px solid var(--border-light); padding-top: 18px; margin-top: 18px; }
+  .setting-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+  .setting-title { font-size: 0.875rem; font-weight: 600; color: var(--warm-700); }
+  .setting-title .badge { font-size: 0.7rem; font-weight: 400; color: var(--warm-400); margin-left: 6px; }
+  .setting-desc { font-size: 0.75rem; color: var(--warm-400); margin-top: 2px; margin-bottom: 8px; }
+
+  /* Toggle */
+  .toggle-track {
+    width: 48px; height: 28px; border-radius: 99px; position: relative;
+    background: #E0DAD0; border: none; cursor: pointer; flex-shrink: 0; transition: background 0.2s;
+  }
+  .toggle-track.on { background: #5BC886; }
+  .toggle-knob {
+    width: 22px; height: 22px; border-radius: 50%; background: #fff;
+    position: absolute; top: 3px; left: 3px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.12); transition: transform 0.2s;
+  }
+  .toggle-track.on .toggle-knob { transform: translateX(20px); }
+
+
+  .logout-btn {
+    background: none; border: 1.5px solid var(--border);
+    border-radius: 8px; padding: 6px 14px;
+    font-size: 0.75rem; font-weight: 600; color: var(--warm-400);
+    cursor: pointer; font-family: 'Noto Sans KR', sans-serif;
+    transition: background 0.15s; margin-top: 20px;
+  }
+  .logout-btn:hover { background: var(--bg); }
+
+  /* ===== Play View ===== */
+  #play-view { width: 100%; display: flex; flex-direction: column; align-items: center; }
+  .play-header { display: flex; align-items: center; gap: 12px; width: 100%; margin-bottom: 12px; }
+  .back-btn {
+    width: 36px; height: 36px; border: 2px solid var(--warm-300);
+    border-radius: 10px; background: var(--warm-50);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--warm-400); cursor: pointer; font-family: inherit; flex-shrink: 0; padding: 0;
+  }
+  .play-middle { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  .play-progress-label { font-size: 0.8rem; font-weight: 600; color: var(--warm-500); }
+  .play-progress-bar { width: 100%; height: 6px; background: var(--border-light); border-radius: 3px; overflow: hidden; }
+  .play-progress-fill {
+    height: 100%; border-radius: 3px; background: var(--app-red);
+    transition: width 0.3s ease, background 0.3s ease;
+  }
+  .play-score { font-size: 0.85rem; font-weight: 700; color: var(--app-green); flex-shrink: 0; }
+
+  /* Game container */
+  .game-container {
+    background: #fff; border: 2px solid var(--border);
+    border-radius: 20px; padding: 20px 14px; width: 100%;
+    display: flex; flex-direction: column; align-items: center;
+  }
+
+  .game-label { font-size: 0.85rem; color: var(--warm-400); font-weight: 500; margin-bottom: 12px; }
+
+  .game-boards {
+    display: flex; gap: 20px; align-items: flex-start;
+    justify-content: center; width: 100%; flex-wrap: wrap;
+  }
+  .board-section {
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+  }
+  .board-label {
+    font-size: 0.78rem; font-weight: 600; color: var(--warm-400);
+    padding: 3px 10px; border-radius: 8px; background: var(--warm-100);
+  }
+  .board-label.target-label { background: var(--app-blue-soft); color: var(--app-blue); }
+  .board-label.player-label { background: var(--app-orange-soft); color: var(--app-orange); }
+
+  .grid {
+    display: grid; gap: 3px;
+    background: var(--warm-200); padding: 3px; border-radius: 10px;
+  }
+  .cell {
+    border-radius: 5px; transition: all 0.15s;
+    background: var(--warm-100);
+  }
+  .cell.clickable { cursor: pointer; }
+  .cell.clickable:hover { transform: scale(1.06); }
+  .cell.clickable:active { transform: scale(0.95); }
+  .cell.wrong-highlight {
+    outline: 2.5px solid var(--app-red); outline-offset: -2px;
+  }
+
+  /* Color Palette */
+  .palette {
+    display: flex; gap: 8px; margin: 14px 0 6px;
+    justify-content: center; align-items: center; flex-wrap: wrap;
+  }
+  .palette-label {
+    font-size: 0.75rem; color: var(--warm-400); font-weight: 600; margin-right: 4px;
+  }
+  .color-btn {
+    width: 40px; height: 40px; border-radius: 50%;
+    border: 3px solid transparent; cursor: pointer; transition: all 0.15s;
+  }
+  .color-btn:hover { transform: scale(1.12); }
+  .color-btn.selected {
+    border-color: var(--warm-700);
+    box-shadow: 0 0 0 3px rgba(74,64,53,0.2);
+    transform: scale(1.12);
+  }
+  .eraser-btn {
+    width: 40px; height: 40px; border-radius: 50%;
+    border: 3px solid transparent; cursor: pointer;
+    background: var(--warm-200); display: flex; align-items: center;
+    justify-content: center; font-size: 1.1rem; transition: all 0.15s;
+  }
+  .eraser-btn:hover { transform: scale(1.12); }
+  .eraser-btn.selected {
+    border-color: var(--warm-700);
+    box-shadow: 0 0 0 3px rgba(74,64,53,0.2);
+    transform: scale(1.12);
+  }
+
+  /* Action buttons */
+  .actions {
+    display: flex; gap: 8px; margin-top: 10px; width: 100%; max-width: 360px;
+  }
+  .action-btn {
+    flex: 1; padding: 12px 0; border-radius: 12px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 0.9rem; font-weight: 700; cursor: pointer;
+    transition: all 0.12s; border: none;
+  }
+  .action-btn:active { transform: scale(0.97); }
+  .reset-btn { background: var(--warm-200); color: var(--warm-600); }
+  .submit-btn { background: var(--app-blue); color: #fff; }
+  .new-btn { background: var(--app-orange); color: #fff; }
+
+
+  /* Result */
+  .result-msg {
+    font-size: 1.1rem; font-weight: 700; margin-top: 12px; min-height: 1.6rem; text-align: center;
+  }
+  .result-msg.correct { color: var(--app-green); }
+  .result-msg.wrong { color: var(--app-red); }
+
+  /* Complete overlay */
+  .complete-overlay {
+    position: relative; margin-top: 30px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 10px;
+  }
+  .complete-emoji { font-size: 56px; }
+  .complete-msg { font-size: 1.25rem; font-weight: 900; color: var(--warm-800); }
+  .complete-sub { font-size: 0.85rem; color: var(--warm-400); }
+  .next-btn {
+    margin-top: 8px; padding: 14px 36px;
+    border: none; border-radius: 12px;
+    background: var(--app-blue); color: #fff;
+    font-size: 1rem; font-weight: 700;
+    cursor: pointer; font-family: inherit; transition: transform 0.12s;
+  }
+  .next-btn:active { transform: scale(0.96); }
+
+  /* Feedback float */
+  .feedback-float {
+    position: fixed; top: 50%; left: 50%;
+    transform: translate(-50%,-50%) scale(0);
+    font-size: 64px; z-index: 100; pointer-events: none;
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .feedback-float.show { transform: translate(-50%,-50%) scale(1); }
+
+  /* Animations */
+  @keyframes popIn {
+    0% { transform: scale(0.8); opacity: 0.5; }
+    45% { transform: scale(1.15); opacity: 1; }
+    65% { transform: scale(0.92); }
+    80% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+  }
+
+  /* Tablet & Desktop */
+  @media (min-width: 768px) {
+    body { align-items: center; padding: 32px; }
+    .app {
+      max-width: 560px; min-height: auto; border-radius: 32px;
+      box-shadow: 0 8px 48px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.04);
+      padding: 44px 40px;
+    }
+    .login-view { min-height: auto; padding: 60px 40px; }
+    .splash-title { font-size: 1.8rem; }
+    .splash-subtitle { font-size: 0.9rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Splash Screen -->
+<div id="splash" class="splash-overlay">
+  <div class="splash-logo">
+    <svg viewBox="0 0 120 100" width="140" height="117" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="30" cy="72" rx="10" ry="6" fill="#F2DC8C" stroke="#3A9B6A" stroke-width="2" transform="rotate(-20 30 72)"/>
+      <ellipse cx="78" cy="76" rx="10" ry="6" fill="#F2DC8C" stroke="#3A9B6A" stroke-width="2" transform="rotate(15 78 76)"/>
+      <ellipse cx="28" cy="54" rx="9" ry="5.5" fill="#F2DC8C" stroke="#3A9B6A" stroke-width="2" transform="rotate(-10 28 54)"/>
+      <path d="M18 60 L10 55" stroke="#F2DC8C" stroke-width="4" stroke-linecap="round"/>
+      <ellipse cx="55" cy="58" rx="35" ry="20" fill="#F5E6C8" stroke="#3A9B6A" stroke-width="2"/>
+      <ellipse cx="52" cy="42" rx="32" ry="28" fill="#7EDCAA" stroke="#3A9B6A" stroke-width="2.5"/>
+      <path d="M52 18 L42 32 L42 48 L52 58 L62 48 L62 32 Z" fill="none" stroke="#3A9B6A" stroke-width="1.3" opacity=".35"/>
+      <line x1="42" y1="32" x2="24" y2="38" stroke="#3A9B6A" stroke-width="1.3" opacity=".35"/>
+      <line x1="62" y1="32" x2="80" y2="38" stroke="#3A9B6A" stroke-width="1.3" opacity=".35"/>
+      <line x1="42" y1="48" x2="26" y2="56" stroke="#3A9B6A" stroke-width="1.3" opacity=".35"/>
+      <line x1="62" y1="48" x2="78" y2="56" stroke="#3A9B6A" stroke-width="1.3" opacity=".35"/>
+      <ellipse cx="42" cy="26" rx="6" ry="4" fill="white" opacity=".35" transform="rotate(-15 42 26)"/>
+      <ellipse cx="62" cy="36" rx="4" ry="3" fill="white" opacity=".2"/>
+      <ellipse cx="92" cy="40" rx="17" ry="15" fill="#F5E6C8" stroke="#3A9B6A" stroke-width="2.5"/>
+      <ellipse cx="82" cy="72" rx="10" ry="6" fill="#F2DC8C" stroke="#3A9B6A" stroke-width="2" transform="rotate(10 82 72)"/>
+      <circle cx="99" cy="35" r="4" fill="white" stroke="#3A9B6A" stroke-width="1.5"/>
+      <circle cx="100" cy="34" r="2.5" fill="#3A9B6A"/>
+      <circle cx="101" cy="33" r="1" fill="white"/>
+      <circle cx="100" cy="44" r="3.5" fill="#F0A050" opacity=".4"/>
+      <path d="M94 46 Q98 50 103 46" fill="none" stroke="#3A9B6A" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>
+  </div>
+  <h1 class="splash-title">
+    <span style="color:#6BADE8;">느린</span><span style="color:#F0A050;">아이</span> <span style="color:#4A4035;">똑같이 맞추기</span>
+  </h1>
+  <p class="splash-subtitle">왼쪽 그림을 보고 똑같이 색칠해보세요</p>
+</div>
+<script>
+setTimeout(function() {
+  var s = document.getElementById("splash");
+  if (s) { s.classList.add("fade-out"); setTimeout(function() { s.remove(); }, 500); }
+}, 3000);
+</script>
+
+<div class="app">
+
+<!-- Login View -->
+<div id="login-view" class="login-view">
+  <div class="login-logo-area">
+    <div class="turtle-svg">
+      <svg viewBox="0 0 120 100" width="120" height="100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="30" cy="72" rx="10" ry="6" fill="#F2DC8C" stroke="#3A9B6A" stroke-width="2" transform="rotate(-20 30 72)"/>
+        <ellipse cx="78" cy="76" rx="10" ry="6" fill="#F2DC8C" stroke="#3A9B6A" stroke-width="2" transform="rotate(15 78 76)"/>
+        <ellipse cx="28" cy="54" rx="9" ry="5.5" fill="#F2DC8C" stroke="#3A9B6A" stroke-width="2" transform="rotate(-10 28 54)"/>
+        <path d="M18 60 L10 55" stroke="#F2DC8C" stroke-width="4" stroke-linecap="round"/>
+        <ellipse cx="55" cy="58" rx="35" ry="20" fill="#F5E6C8" stroke="#3A9B6A" stroke-width="2"/>
+        <ellipse cx="52" cy="42" rx="32" ry="28" fill="#7EDCAA" stroke="#3A9B6A" stroke-width="2.5"/>
+        <path d="M52 18 L42 32 L42 48 L52 58 L62 48 L62 32 Z" fill="none" stroke="#3A9B6A" stroke-width="1.3" opacity="0.35"/>
+        <line x1="42" y1="32" x2="24" y2="38" stroke="#3A9B6A" stroke-width="1.3" opacity="0.35"/>
+        <line x1="62" y1="32" x2="80" y2="38" stroke="#3A9B6A" stroke-width="1.3" opacity="0.35"/>
+        <line x1="42" y1="48" x2="26" y2="56" stroke="#3A9B6A" stroke-width="1.3" opacity="0.35"/>
+        <line x1="62" y1="48" x2="78" y2="56" stroke="#3A9B6A" stroke-width="1.3" opacity="0.35"/>
+        <ellipse cx="42" cy="26" rx="6" ry="4" fill="white" opacity="0.35" transform="rotate(-15 42 26)"/>
+        <ellipse cx="62" cy="36" rx="4" ry="3" fill="white" opacity="0.2"/>
+        <ellipse cx="92" cy="40" rx="17" ry="15" fill="#F5E6C8" stroke="#3A9B6A" stroke-width="2.5"/>
+        <ellipse cx="82" cy="72" rx="10" ry="6" fill="#F2DC8C" stroke="#3A9B6A" stroke-width="2" transform="rotate(10 82 72)"/>
+        <circle cx="99" cy="35" r="4" fill="white" stroke="#3A9B6A" stroke-width="1.5"/>
+        <circle cx="100" cy="34" r="2.5" fill="#3A9B6A"/>
+        <circle cx="101" cy="33" r="1" fill="white"/>
+        <circle cx="100" cy="44" r="3.5" fill="#F0A050" opacity="0.4"/>
+        <path d="M94 46 Q98 50 103 46" fill="none" stroke="#3A9B6A" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <h1><span style="color:#6BADE8;">느린</span><span style="color:#F0A050;">아이</span> <span style="color:#4A4035;">똑같이 맞추기</span></h1>
+    <p class="login-subtitle">왼쪽 그림을 보고 똑같이 색칠해보세요</p>
+  </div>
+  <div class="login-buttons">
+    <button class="login-btn kakao" onclick="doLogin('kakao')">
+      <svg width="20" height="20" viewBox="0 0 20 20"><path d="M10 1C4.477 1 0 4.477 0 8.667c0 2.7 1.753 5.072 4.393 6.413-.192.717-.694 2.6-.794 3.004-.124.497.182.49.383.356.158-.105 2.51-1.708 3.525-2.398.8.118 1.628.18 2.493.18 5.523 0 10-3.477 10-7.555C20 4.477 15.523 1 10 1z" fill="#191919"/></svg>
+      카카오 로그인
+    </button>
+    <button class="login-btn naver" onclick="doLogin('naver')">
+      <svg width="20" height="20" viewBox="0 0 20 20"><path d="M13.57 10.684L6.066 0H0v20h6.43V9.316L13.934 20H20V0h-6.43v10.684z" fill="white"/></svg>
+      네이버 로그인
+    </button>
+    <button class="login-btn google" onclick="doLogin('google')">
+      <svg width="20" height="20" viewBox="0 0 48 48"><path d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z" fill="#FFC107"/><path d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z" fill="#FF3D00"/><path d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0124 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z" fill="#4CAF50"/><path d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 01-4.087 5.571l.001-.001 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z" fill="#1976D2"/></svg>
+      Google 로그인
+    </button>
+    <button class="login-btn facebook" onclick="doLogin('facebook')">
+      <svg width="20" height="20" viewBox="0 0 20 20"><path d="M20 10c0-5.523-4.477-10-10-10S0 4.477 0 10c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V10h2.54V7.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V10h2.773l-.443 2.89h-2.33v6.988C16.343 19.128 20 14.991 20 10z" fill="white"/></svg>
+      Facebook 로그인
+    </button>
+  </div>
+</div>
+
+<!-- Start View -->
+<div id="start-view" class="hidden">
+  <div class="brand">
+    <div class="turtle-svg">
+      <svg viewBox="0 0 120 100" width="120" height="100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="30" cy="72" rx="10" ry="6" fill="#F2DC8C" stroke="#3A9B6A" stroke-width="2" transform="rotate(-20 30 72)"/>
+        <ellipse cx="78" cy="76" rx="10" ry="6" fill="#F2DC8C" stroke="#3A9B6A" stroke-width="2" transform="rotate(15 78 76)"/>
+        <ellipse cx="28" cy="54" rx="9" ry="5.5" fill="#F2DC8C" stroke="#3A9B6A" stroke-width="2" transform="rotate(-10 28 54)"/>
+        <path d="M18 60 L10 55" stroke="#F2DC8C" stroke-width="4" stroke-linecap="round"/>
+        <ellipse cx="55" cy="58" rx="35" ry="20" fill="#F5E6C8" stroke="#3A9B6A" stroke-width="2"/>
+        <ellipse cx="52" cy="42" rx="32" ry="28" fill="#7EDCAA" stroke="#3A9B6A" stroke-width="2.5"/>
+        <path d="M52 18 L42 32 L42 48 L52 58 L62 48 L62 32 Z" fill="none" stroke="#3A9B6A" stroke-width="1.3" opacity="0.35"/>
+        <line x1="42" y1="32" x2="24" y2="38" stroke="#3A9B6A" stroke-width="1.3" opacity="0.35"/>
+        <line x1="62" y1="32" x2="80" y2="38" stroke="#3A9B6A" stroke-width="1.3" opacity="0.35"/>
+        <line x1="42" y1="48" x2="26" y2="56" stroke="#3A9B6A" stroke-width="1.3" opacity="0.35"/>
+        <line x1="62" y1="48" x2="78" y2="56" stroke="#3A9B6A" stroke-width="1.3" opacity="0.35"/>
+        <ellipse cx="42" cy="26" rx="6" ry="4" fill="white" opacity="0.35" transform="rotate(-15 42 26)"/>
+        <ellipse cx="62" cy="36" rx="4" ry="3" fill="white" opacity="0.2"/>
+        <ellipse cx="92" cy="40" rx="17" ry="15" fill="#F5E6C8" stroke="#3A9B6A" stroke-width="2.5"/>
+        <ellipse cx="82" cy="72" rx="10" ry="6" fill="#F2DC8C" stroke="#3A9B6A" stroke-width="2" transform="rotate(10 82 72)"/>
+        <circle cx="99" cy="35" r="4" fill="white" stroke="#3A9B6A" stroke-width="1.5"/>
+        <circle cx="100" cy="34" r="2.5" fill="#3A9B6A"/>
+        <circle cx="101" cy="33" r="1" fill="white"/>
+        <circle cx="100" cy="44" r="3.5" fill="#F0A050" opacity="0.4"/>
+        <path d="M94 46 Q98 50 103 46" fill="none" stroke="#3A9B6A" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <h1><span style="color:#6BADE8;">느린</span><span style="color:#F0A050;">아이</span> <span style="color:#4A4035;">똑같이 맞추기</span></h1>
+  </div>
+  <p class="brand-sub">왼쪽 그림을 보고 똑같이 색칠해보세요</p>
+
+  <!-- Stage cards: 단계(그리드) → 색깔 수 선택 -->
+  <div class="mode-card" id="card-2x2">
+    <h2>1단계 · 2×2</h2>
+    <p class="desc">4칸짜리 격자에서 색칠해요</p>
+    <div class="mode-preview" id="preview-2x2"></div>
+    <div class="mode-btns">
+      <div class="grid-selector" id="colors-2x2">
+        <span class="grid-label">색깔 수</span>
+        <button class="grid-btn selected" data-colors="1" onclick="selectColors('2x2',1)">1색</button>
+        <button class="grid-btn" data-colors="2" onclick="selectColors('2x2',2)">2색</button>
+        <button class="grid-btn" data-colors="3" onclick="selectColors('2x2',3)">3색</button>
+        <button class="grid-btn" data-colors="4" onclick="selectColors('2x2',4)">4색</button>
+      </div>
+      <button class="mode-start" onclick="startGame(2)">시작하기</button>
+    </div>
+  </div>
+
+  <div class="mode-card" id="card-3x3">
+    <h2>2단계 · 3×3</h2>
+    <p class="desc">9칸짜리 격자에서 색칠해요</p>
+    <div class="mode-preview" id="preview-3x3"></div>
+    <div class="mode-btns">
+      <div class="grid-selector" id="colors-3x3">
+        <span class="grid-label">색깔 수</span>
+        <button class="grid-btn selected" data-colors="1" onclick="selectColors('3x3',1)">1색</button>
+        <button class="grid-btn" data-colors="2" onclick="selectColors('3x3',2)">2색</button>
+        <button class="grid-btn" data-colors="3" onclick="selectColors('3x3',3)">3색</button>
+        <button class="grid-btn" data-colors="4" onclick="selectColors('3x3',4)">4색</button>
+      </div>
+      <button class="mode-start" onclick="startGame(3)">시작하기</button>
+    </div>
+  </div>
+
+  <div class="mode-card" id="card-4x4">
+    <h2>3단계 · 4×4</h2>
+    <p class="desc">16칸짜리 격자에서 색칠해요</p>
+    <div class="mode-preview" id="preview-4x4"></div>
+    <div class="mode-btns">
+      <div class="grid-selector" id="colors-4x4">
+        <span class="grid-label">색깔 수</span>
+        <button class="grid-btn selected" data-colors="1" onclick="selectColors('4x4',1)">1색</button>
+        <button class="grid-btn" data-colors="2" onclick="selectColors('4x4',2)">2색</button>
+        <button class="grid-btn" data-colors="3" onclick="selectColors('4x4',3)">3색</button>
+        <button class="grid-btn" data-colors="4" onclick="selectColors('4x4',4)">4색</button>
+      </div>
+      <button class="mode-start" onclick="startGame(4)">시작하기</button>
+    </div>
+  </div>
+
+  <div class="mode-card" id="card-5x5">
+    <h2>4단계 · 5×5</h2>
+    <p class="desc">25칸짜리 격자에서 색칠해요</p>
+    <div class="mode-preview" id="preview-5x5"></div>
+    <div class="mode-btns">
+      <div class="grid-selector" id="colors-5x5">
+        <span class="grid-label">색깔 수</span>
+        <button class="grid-btn selected" data-colors="1" onclick="selectColors('5x5',1)">1색</button>
+        <button class="grid-btn" data-colors="2" onclick="selectColors('5x5',2)">2색</button>
+        <button class="grid-btn" data-colors="3" onclick="selectColors('5x5',3)">3색</button>
+        <button class="grid-btn" data-colors="4" onclick="selectColors('5x5',4)">4색</button>
+      </div>
+      <button class="mode-start" onclick="startGame(5)">시작하기</button>
+    </div>
+  </div>
+
+  <!-- Settings -->
+  <div class="settings-section">
+    <div class="setting-divider">
+      <div class="setting-header">
+        <div>
+          <p class="setting-title">음성 <span class="badge">정답/오답 음성 안내</span></p>
+        </div>
+        <button class="toggle-track" id="tts-toggle" onclick="toggleTTS()" role="switch">
+          <span class="toggle-knob"></span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <button class="logout-btn" onclick="doLogout()">로그아웃</button>
+</div>
+
+<!-- Play View -->
+<div id="play-view" class="hidden">
+  <div class="play-header">
+    <button class="back-btn" onclick="goHome()" aria-label="홈으로">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    </button>
+    <div class="play-middle">
+      <span class="play-progress-label" id="play-progress-label">0 / 10</span>
+      <div class="play-progress-bar"><div class="play-progress-fill" id="play-progress-fill" style="width:0%"></div></div>
+    </div>
+    <span class="play-score" id="play-score">0점</span>
+  </div>
+  <div class="game-container" id="game-container" style="position:relative;"></div>
+</div>
+
+</div><!-- /.app -->
+
+<div class="feedback-float" id="feedback"></div>
+
+<script>
+// ===== Constants =====
+const STORAGE_KEY = 'colorcopy_settings';
+const LOGIN_KEY = 'colorcopy_login';
+const TOTAL_QUESTIONS = 10;
+
+const COLORS = {
+  red: '#F07070',
+  blue: '#6BADE8',
+  yellow: '#FBBF24',
+  green: '#5BC886'
+};
+const COLOR_NAMES = ['red', 'blue', 'yellow', 'green'];
+const COLOR_LABELS = { red: '빨강', blue: '파랑', yellow: '노랑', green: '초록' };
+
+// ===== State =====
+let settings = loadSettings();
+let currentColorCount = 1;
+let gridSize = 2;
+let selectedColorCounts = { '2x2': 1, '3x3': 1, '4x4': 1, '5x5': 1 };
+let score = 0;
+let questionNum = 0;
+let targetState = [];
+let playerState = [];
+let activeColors = [];
+let selectedColor = null;
+
+// ===== Login =====
+function doLogin(provider) {
+  localStorage.setItem(LOGIN_KEY, provider);
+  showView('start');
+}
+function doLogout() {
+  localStorage.removeItem(LOGIN_KEY);
+  showView('login');
+}
+function checkLogin() {
+  showView(localStorage.getItem(LOGIN_KEY) ? 'start' : 'login');
+}
+
+function showView(name) {
+  document.getElementById('login-view').classList.toggle('hidden', name !== 'login');
+  document.getElementById('start-view').classList.toggle('hidden', name !== 'start');
+  document.getElementById('play-view').classList.toggle('hidden', name !== 'play');
+  if (name === 'start') { renderSettingsUI(); renderPreviews(); }
+}
+
+// ===== Settings =====
+function loadSettings() {
+  try {
+    const s = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    return { tts: s?.tts ?? true };
+  } catch { return { tts: true }; }
+}
+function saveSettings() { localStorage.setItem(STORAGE_KEY, JSON.stringify(settings)); }
+function toggleTTS() { settings.tts = !settings.tts; saveSettings(); renderSettingsUI(); }
+function renderSettingsUI() {
+  const ttsEl = document.getElementById('tts-toggle');
+  ttsEl.classList.toggle('on', settings.tts);
+}
+
+// ===== TTS =====
+function speak(text) {
+  if (!settings.tts || !window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'ko-KR'; u.rate = 0.9;
+  setTimeout(() => window.speechSynthesis.speak(u), 50);
+}
+
+// ===== Feedback =====
+function showFeedback(emoji) {
+  const el = document.getElementById('feedback');
+  el.textContent = emoji;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 600);
+}
+
+// ===== Color count selector =====
+function selectColors(stage, count) {
+  selectedColorCounts[stage] = count;
+  const container = document.getElementById('colors-' + stage);
+  if (container) {
+    container.querySelectorAll('.grid-btn').forEach(b => {
+      b.classList.toggle('selected', parseInt(b.dataset.colors) === count);
+    });
+  }
+}
+
+// ===== Helpers =====
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// ===== Preview grids =====
+// 단계별 대표 색상: 1단계=빨강, 2단계=파랑, 3단계=노랑, 4단계=초록
+const STAGE_COLORS = { 2: 'red', 3: 'blue', 4: 'yellow', 5: 'green' };
+
+function renderPreviews() {
+  [2,3,4,5].forEach(size => {
+    const el = document.getElementById('preview-' + size + 'x' + size);
+    if (!el) return;
+    const total = size * size;
+    const filledCount = Math.floor(total / 2);
+    const mainColor = STAGE_COLORS[size];
+    const state = Array(total).fill(null);
+    const indices = shuffle([...Array(total).keys()]);
+    for (let i = 0; i < filledCount; i++) {
+      state[indices[i]] = mainColor;
+    }
+    el.innerHTML = '';
+    const cellPx = size <= 3 ? 18 : 14;
+    const grid = document.createElement('div');
+    grid.className = 'preview-grid';
+    grid.style.gridTemplateColumns = `repeat(${size}, ${cellPx}px)`;
+    state.forEach(c => {
+      const cell = document.createElement('div');
+      cell.className = 'preview-cell';
+      cell.style.width = cellPx + 'px';
+      cell.style.height = cellPx + 'px';
+      cell.style.background = c ? COLORS[c] : 'var(--warm-100)';
+      grid.appendChild(cell);
+    });
+    el.appendChild(grid);
+  });
+}
+
+// ===== Navigation =====
+function goHome() {
+  showView('start');
+}
+
+// ===== Game =====
+function generateTarget() {
+  const total = gridSize * gridSize;
+  const filledCount = Math.floor(total / 2);
+  const shuffledColors = shuffle([...COLOR_NAMES]);
+  activeColors = shuffledColors.slice(0, currentColorCount);
+  const state = Array(total).fill(null);
+  const indices = shuffle([...Array(total).keys()]);
+  for (let i = 0; i < filledCount; i++) {
+    state[indices[i]] = activeColors[Math.floor(Math.random() * activeColors.length)];
+  }
+  return state;
+}
+
+function startGame(size) {
+  const stageKey = size + 'x' + size;
+  gridSize = size;
+  currentColorCount = selectedColorCounts[stageKey] || 1;
+  score = 0; questionNum = 0;
+  showView('play');
+  updateScoreUI();
+  nextQuestion();
+}
+
+function updateScoreUI() {
+  document.getElementById('play-score').textContent = score + '점';
+  updateProgress();
+}
+
+function updateProgress() {
+  const current = Math.min(questionNum, TOTAL_QUESTIONS);
+  document.getElementById('play-progress-label').textContent = `${current} / ${TOTAL_QUESTIONS}`;
+  const fill = document.getElementById('play-progress-fill');
+  const ratio = current / TOTAL_QUESTIONS;
+  fill.style.width = `${ratio * 100}%`;
+  if (ratio <= 0.33) fill.style.background = 'var(--app-red)';
+  else if (ratio <= 0.66) fill.style.background = 'var(--app-orange)';
+  else fill.style.background = 'var(--app-green)';
+}
+
+function nextQuestion() {
+  questionNum++;
+
+  if (questionNum > TOTAL_QUESTIONS) {
+    showComplete();
+    return;
+  }
+
+  updateScoreUI();
+  targetState = generateTarget();
+  playerState = Array(gridSize * gridSize).fill(null);
+  selectedColor = activeColors[0];
+  renderGame();
+}
+
+function getCellSize() {
+  // Responsive: fit within available space
+  const maxBoardWidth = 180;
+  const gap = 3;
+  return Math.min(Math.floor((maxBoardWidth - gap * (gridSize - 1)) / gridSize), 50);
+}
+
+function renderGame() {
+  const gc = document.getElementById('game-container');
+  const cellSize = getCellSize();
+
+  let html = `<div class="game-label">원본을 보고 똑같이 색칠하세요</div>`;
+  html += `<div class="game-boards">`;
+
+  // Target grid
+  html += `<div class="board-section"><span class="board-label target-label">원본</span>`;
+  html += `<div class="grid" style="grid-template-columns:repeat(${gridSize},${cellSize}px)">`;
+  targetState.forEach(c => {
+    html += `<div class="cell" style="width:${cellSize}px;height:${cellSize}px;background:${c ? COLORS[c] : 'var(--warm-100)'}"></div>`;
+  });
+  html += `</div></div>`;
+
+  // Player grid
+  html += `<div class="board-section"><span class="board-label player-label">내 답</span>`;
+  html += `<div class="grid" id="playerGrid" style="grid-template-columns:repeat(${gridSize},${cellSize}px)">`;
+  playerState.forEach((c, i) => {
+    html += `<div class="cell clickable" data-idx="${i}" style="width:${cellSize}px;height:${cellSize}px;background:${c ? COLORS[c] : 'var(--warm-100)'}"></div>`;
+  });
+  html += `</div></div>`;
+  html += `</div>`; // close game-boards
+
+  // Palette
+  html += `<div class="palette"><span class="palette-label">색깔:</span>`;
+  activeColors.forEach(name => {
+    html += `<button class="color-btn${selectedColor === name ? ' selected' : ''}" data-color="${name}" style="background:${COLORS[name]}"></button>`;
+  });
+  html += `</div>`;
+
+  // Actions
+  html += `<div class="actions">`;
+  html += `<button class="action-btn reset-btn" id="resetBtn">지우기</button>`;
+  html += `<button class="action-btn submit-btn" id="submitBtn">제출</button>`;
+  html += `</div>`;
+
+  // Result message
+  html += `<div class="result-msg" id="resultMsg"></div>`;
+
+  gc.innerHTML = html;
+
+  // Event: palette
+  gc.querySelectorAll('.color-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedColor = btn.dataset.color;
+      gc.querySelectorAll('.color-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+    });
+  });
+
+  // Event: player cells — 칠해진 칸 다시 터치하면 지워짐
+  gc.querySelectorAll('#playerGrid .cell').forEach(cell => {
+    cell.addEventListener('click', () => {
+      const idx = parseInt(cell.dataset.idx);
+      if (playerState[idx] !== null) {
+        // 이미 칠해진 칸 → 지우기
+        playerState[idx] = null;
+        cell.style.background = 'var(--warm-100)';
+      } else if (selectedColor) {
+        // 빈 칸 → 색칠
+        playerState[idx] = selectedColor;
+        cell.style.background = COLORS[selectedColor];
+      }
+    });
+  });
+
+  // Event: reset
+  gc.querySelector('#resetBtn').addEventListener('click', () => {
+    playerState = Array(gridSize * gridSize).fill(null);
+    gc.querySelectorAll('#playerGrid .cell').forEach(c => {
+      c.style.background = 'var(--warm-100)';
+      c.classList.remove('wrong-highlight');
+    });
+    gc.querySelector('#resultMsg').textContent = '';
+    gc.querySelector('#resultMsg').className = 'result-msg';
+  });
+
+  // Event: submit
+  gc.querySelector('#submitBtn').addEventListener('click', checkAnswer);
+
+  speak('원본을 보고 똑같이 색칠해 보세요');
+}
+
+
+function checkAnswer() {
+  const total = gridSize * gridSize;
+  let correct = true;
+  const wrongIndices = [];
+  for (let i = 0; i < total; i++) {
+    if (targetState[i] !== playerState[i]) {
+      correct = false;
+      wrongIndices.push(i);
+    }
+  }
+
+  const resultEl = document.getElementById('resultMsg');
+  const playerCells = document.querySelectorAll('#playerGrid .cell');
+
+  if (correct) {
+    score += 10;
+    showFeedback('🎉');
+    speak('정답이에요!');
+    updateScoreUI();
+    nextQuestion();
+    return;
+  } else {
+    resultEl.textContent = '다시 확인해보세요';
+    resultEl.className = 'result-msg wrong';
+    showFeedback('😢');
+    speak('다시 한번 살펴봐요');
+
+    // Highlight wrong cells
+    wrongIndices.forEach(i => {
+      playerCells[i].classList.add('wrong-highlight');
+      setTimeout(() => playerCells[i].classList.remove('wrong-highlight'), 1500);
+    });
+  }
+}
+
+function showComplete() {
+  const gc = document.getElementById('game-container');
+  gc.innerHTML = `
+    <div class="complete-overlay">
+      <div class="complete-emoji">🏆</div>
+      <div class="complete-msg">${TOTAL_QUESTIONS}문제 완료!</div>
+      <div class="complete-sub">${score}점</div>
+      <button class="next-btn" id="retry-btn">다시 하기</button>
+      <button class="next-btn" id="home-btn" style="margin-top:8px;background:var(--warm-200);color:var(--warm-700);">홈으로</button>
+    </div>
+  `;
+  speak('모두 풀었어요! 잘했어요!');
+  document.getElementById('retry-btn').addEventListener('click', () => startGame(gridSize));
+  document.getElementById('home-btn').addEventListener('click', goHome);
+}
+
+// ===== Init =====
+checkLogin();
+</script>
+</body>
+</html>
