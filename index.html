@@ -356,6 +356,116 @@
   @media (min-width: 1024px) {
     .app { max-width: 600px; padding: 48px 44px; }
   }
+
+  /* ===== Landscape Game Mode ===== */
+  .force-landscape {
+    position: fixed !important;
+    top: 0; left: 0;
+    width: 100vh !important;
+    height: 100vw !important;
+    transform: rotate(90deg);
+    transform-origin: top left;
+    margin-left: 100vw;
+    overflow: hidden;
+    z-index: 50;
+    background: white;
+  }
+
+  .app:has(.landscape-game) {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .landscape-game {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    padding: 8px 16px;
+    padding-top: max(8px, env(safe-area-inset-top));
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+    background: white;
+  }
+
+  .landscape-game .play-header {
+    margin-bottom: 4px;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .landscape-game .back-btn {
+    width: 30px; height: 30px; border-radius: 8px;
+  }
+
+  .landscape-game .play-progress-label { font-size: 0.7rem; }
+  .landscape-game .play-score { font-size: 0.75rem; }
+
+  .landscape-game .game-container {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+    gap: 6px;
+    flex: 1;
+    overflow-y: auto;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .landscape-game .game-label {
+    font-size: 0.75rem;
+    margin-bottom: 4px;
+  }
+
+  .landscape-game .game-boards {
+    gap: 24px;
+    flex-wrap: nowrap;
+    align-items: center;
+  }
+
+  .landscape-game .board-label {
+    font-size: 0.7rem;
+    padding: 2px 8px;
+  }
+
+  .landscape-game .palette {
+    margin: 6px 0 4px;
+    gap: 6px;
+  }
+
+  .landscape-game .color-btn {
+    width: 32px; height: 32px;
+  }
+
+  .landscape-game .palette-label {
+    font-size: 0.7rem;
+  }
+
+  .landscape-game .actions {
+    margin-top: 6px;
+    max-width: 300px;
+  }
+
+  .landscape-game .action-btn {
+    padding: 8px 0;
+    font-size: 0.8rem;
+  }
+
+  .landscape-game .result-msg {
+    font-size: 0.9rem;
+    margin-top: 6px;
+  }
+
+  .landscape-game .complete-overlay {
+    margin-top: 10px;
+    gap: 6px;
+  }
+
+  .landscape-game .complete-emoji { font-size: 36px; }
+  .landscape-game .complete-msg { font-size: 1rem; }
+  .landscape-game .next-btn { padding: 10px 28px; font-size: 0.9rem; }
 </style>
 </head>
 <body>
@@ -715,8 +825,85 @@ function renderPreviews() {
   });
 }
 
+// ===== Landscape Orientation =====
+let orientationLocked = false;
+let useCssFallback = false;
+
+function applyForceLandscape() {
+  const gameView = document.getElementById('play-view');
+  useCssFallback = true;
+  if (window.innerHeight > window.innerWidth) {
+    gameView.classList.add('force-landscape');
+  }
+}
+
+function lockLandscape() {
+  const gameView = document.getElementById('play-view');
+  gameView.classList.add('landscape-game');
+
+  const el = document.documentElement;
+  const requestFs = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+
+  if (requestFs) {
+    requestFs.call(el).then(() => {
+      const so = screen.orientation;
+      if (so && so.lock) {
+        so.lock('landscape').then(() => {
+          orientationLocked = true;
+        }).catch(() => applyForceLandscape());
+      } else {
+        applyForceLandscape();
+      }
+    }).catch(() => {
+      const so = screen.orientation;
+      if (so && so.lock) {
+        so.lock('landscape').then(() => {
+          orientationLocked = true;
+        }).catch(() => applyForceLandscape());
+      } else {
+        applyForceLandscape();
+      }
+    });
+  } else {
+    const so = screen.orientation;
+    if (so && so.lock) {
+      so.lock('landscape').then(() => {
+        orientationLocked = true;
+      }).catch(() => applyForceLandscape());
+    } else {
+      applyForceLandscape();
+    }
+  }
+}
+
+function unlockLandscape() {
+  const gameView = document.getElementById('play-view');
+  gameView.classList.remove('landscape-game', 'force-landscape');
+  if (orientationLocked) {
+    const so = screen.orientation;
+    if (so && so.unlock) so.unlock();
+    orientationLocked = false;
+  }
+  useCssFallback = false;
+
+  const exitFs = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+  if (exitFs && document.fullscreenElement) exitFs.call(document);
+}
+
+window.addEventListener('resize', () => {
+  if (useCssFallback) {
+    const gameView = document.getElementById('play-view');
+    if (window.innerHeight > window.innerWidth) {
+      gameView.classList.add('force-landscape');
+    } else {
+      gameView.classList.remove('force-landscape');
+    }
+  }
+});
+
 // ===== Navigation =====
 function goHome() {
+  unlockLandscape();
   showView('start');
 }
 
@@ -740,6 +927,7 @@ function startGame(size) {
   currentColorCount = selectedColorCounts[stageKey] || 1;
   score = 0; questionNum = 0;
   showView('play');
+  lockLandscape();
   updateScoreUI();
   nextQuestion();
 }
@@ -776,10 +964,21 @@ function nextQuestion() {
 }
 
 function getCellSize() {
-  // Responsive: fit within available screen width
-  const screenW = window.innerWidth;
-  // Each board takes ~45% of container width, minus padding
-  const containerW = Math.min(screenW, 480) - 40; // app padding
+  const isLandscape = document.getElementById('play-view').classList.contains('landscape-game');
+  const screenW = isLandscape ? Math.max(window.innerWidth, window.innerHeight) : window.innerWidth;
+  const screenH = isLandscape ? Math.min(window.innerWidth, window.innerHeight) : window.innerHeight;
+
+  if (isLandscape) {
+    // In landscape: fit boards side by side, limited by available height
+    const availH = screenH - 120; // header + palette + actions
+    const availW = screenW - 80; // padding
+    const boardW = Math.floor(availW * 0.38);
+    const maxByWidth = Math.floor((boardW - 3 * (gridSize - 1)) / gridSize);
+    const maxByHeight = Math.floor((availH - 3 * (gridSize - 1)) / gridSize);
+    return Math.min(maxByWidth, maxByHeight, 60);
+  }
+
+  const containerW = Math.min(screenW, 480) - 40;
   const boardW = Math.floor(containerW * 0.42);
   const maxBoardWidth = Math.min(boardW, 180);
   const gap = 3;
