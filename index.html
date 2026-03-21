@@ -1194,26 +1194,26 @@ function openPrintWindow(title, subtitle, bodyHTML) {
 }
 function exportPDF() {
     var pats=[
-        "<span style="color:#EF4444;">&#9679;</span><span style="color:#3B82F6;">&#9679;</span><span style="color:#F59E0B;">&#9679;</span>",
-        "<span style="color:#22C55E;">&#9679;</span><span style="color:#F97316;">&#9679;</span><span style="color:#EF4444;">&#9679;</span>",
-        "<span style="color:#3B82F6;">&#9679;</span><span style="color:#F59E0B;">&#9679;</span><span style="color:#22C55E;">&#9679;</span>",
-        "<span style="color:#F97316;">&#9679;</span><span style="color:#EF4444;">&#9679;</span><span style="color:#3B82F6;">&#9679;</span>",
-        "<span style="color:#F59E0B;">&#9679;</span><span style="color:#22C55E;">&#9679;</span><span style="color:#F97316;">&#9679;</span>",
-        "<span style="color:#EF4444;">&#9679;</span><span style="color:#EF4444;">&#9679;</span><span style="color:#3B82F6;">&#9679;</span>",
-        "<span style="color:#F59E0B;">&#9679;</span><span style="color:#3B82F6;">&#9679;</span><span style="color:#F59E0B;">&#9679;</span>",
-        "<span style="color:#22C55E;">&#9679;</span><span style="color:#F97316;">&#9679;</span><span style="color:#22C55E;">&#9679;</span>",
-        "<span style="color:#3B82F6;">&#9679;</span><span style="color:#F59E0B;">&#9679;</span><span style="color:#EF4444;">&#9679;</span><span style="color:#22C55E;">&#9679;</span>",
-        "<span style="color:#F97316;">&#9679;</span><span style="color:#EF4444;">&#9679;</span><span style="color:#3B82F6;">&#9679;</span><span style="color:#F59E0B;">&#9679;</span>",
-        "<span style="color:#22C55E;">&#9679;</span><span style="color:#F59E0B;">&#9679;</span><span style="color:#F97316;">&#9679;</span><span style="color:#EF4444;">&#9679;</span>",
-        "<span style="color:#3B82F6;">&#9679;</span><span style="color:#F97316;">&#9679;</span><span style="color:#22C55E;">&#9679;</span><span style="color:#3B82F6;">&#9679;</span>",
-        "<span style="color:#EF4444;">&#9679;</span><span style="color:#F59E0B;">&#9679;</span><span style="color:#EF4444;">&#9679;</span><span style="color:#F59E0B;">&#9679;</span>",
-        "<span style="color:#3B82F6;">&#9679;</span><span style="color:#22C55E;">&#9679;</span><span style="color:#3B82F6;">&#9679;</span><span style="color:#22C55E;">&#9679;</span>",
-        "<span style="color:#F59E0B;">&#9679;</span><span style="color:#F97316;">&#9679;</span><span style="color:#F59E0B;">&#9679;</span><span style="color:#F97316;">&#9679;</span>",
-        "<span style="color:#EF4444;">&#9679;</span><span style="color:#3B82F6;">&#9679;</span><span style="color:#22C55E;">&#9679;</span><span style="color:#EF4444;">&#9679;</span>",
-        "<span style="color:#3B82F6;">&#9679;</span><span style="color:#3B82F6;">&#9679;</span><span style="color:#F59E0B;">&#9679;</span><span style="color:#22C55E;">&#9679;</span>",
-        "<span style="color:#EF4444;">&#9679;</span><span style="color:#F97316;">&#9679;</span><span style="color:#3B82F6;">&#9679;</span><span style="color:#F59E0B;">&#9679;</span>",
-        "<span style="color:#22C55E;">&#9679;</span><span style="color:#22C55E;">&#9679;</span><span style="color:#F97316;">&#9679;</span><span style="color:#EF4444;">&#9679;</span>",
-        "<span style="color:#F59E0B;">&#9679;</span><span style="color:#EF4444;">&#9679;</span><span style="color:#22C55E;">&#9679;</span><span style="color:#F97316;">&#9679;</span>"
+        "<span style='color:#EF4444;'>&#9679;</span><span style='color:#3B82F6;'>&#9679;</span><span style='color:#F59E0B;'>&#9679;</span>",
+        "<span style='color:#22C55E;'>&#9679;</span><span style='color:#F97316;'>&#9679;</span><span style='color:#EF4444;'>&#9679;</span>",
+        "<span style='color:#3B82F6;'>&#9679;</span><span style='color:#F59E0B;'>&#9679;</span><span style='color:#22C55E;'>&#9679;</span>",
+        "<span style='color:#F97316;'>&#9679;</span><span style='color:#EF4444;'>&#9679;</span><span style='color:#3B82F6;'>&#9679;</span>",
+        "<span style='color:#F59E0B;'>&#9679;</span><span style='color:#22C55E;'>&#9679;</span><span style='color:#F97316;'>&#9679;</span>",
+        "<span style='color:#EF4444;'>&#9679;</span><span style='color:#EF4444;'>&#9679;</span><span style='color:#3B82F6;'>&#9679;</span>",
+        "<span style='color:#F59E0B;'>&#9679;</span><span style='color:#3B82F6;'>&#9679;</span><span style='color:#F59E0B;'>&#9679;</span>",
+        "<span style='color:#22C55E;'>&#9679;</span><span style='color:#F97316;'>&#9679;</span><span style='color:#22C55E;'>&#9679;</span>",
+        "<span style='color:#3B82F6;'>&#9679;</span><span style='color:#F59E0B;'>&#9679;</span><span style='color:#EF4444;'>&#9679;</span><span style='color:#22C55E;'>&#9679;</span>",
+        "<span style='color:#F97316;'>&#9679;</span><span style='color:#EF4444;'>&#9679;</span><span style='color:#3B82F6;'>&#9679;</span><span style='color:#F59E0B;'>&#9679;</span>",
+        "<span style='color:#22C55E;'>&#9679;</span><span style='color:#F59E0B;'>&#9679;</span><span style='color:#F97316;'>&#9679;</span><span style='color:#EF4444;'>&#9679;</span>",
+        "<span style='color:#3B82F6;'>&#9679;</span><span style='color:#F97316;'>&#9679;</span><span style='color:#22C55E;'>&#9679;</span><span style='color:#3B82F6;'>&#9679;</span>",
+        "<span style='color:#EF4444;'>&#9679;</span><span style='color:#F59E0B;'>&#9679;</span><span style='color:#EF4444;'>&#9679;</span><span style='color:#F59E0B;'>&#9679;</span>",
+        "<span style='color:#3B82F6;'>&#9679;</span><span style='color:#22C55E;'>&#9679;</span><span style='color:#3B82F6;'>&#9679;</span><span style='color:#22C55E;'>&#9679;</span>",
+        "<span style='color:#F59E0B;'>&#9679;</span><span style='color:#F97316;'>&#9679;</span><span style='color:#F59E0B;'>&#9679;</span><span style='color:#F97316;'>&#9679;</span>",
+        "<span style='color:#EF4444;'>&#9679;</span><span style='color:#3B82F6;'>&#9679;</span><span style='color:#22C55E;'>&#9679;</span><span style='color:#EF4444;'>&#9679;</span>",
+        "<span style='color:#3B82F6;'>&#9679;</span><span style='color:#3B82F6;'>&#9679;</span><span style='color:#F59E0B;'>&#9679;</span><span style='color:#22C55E;'>&#9679;</span>",
+        "<span style='color:#EF4444;'>&#9679;</span><span style='color:#F97316;'>&#9679;</span><span style='color:#3B82F6;'>&#9679;</span><span style='color:#F59E0B;'>&#9679;</span>",
+        "<span style='color:#22C55E;'>&#9679;</span><span style='color:#22C55E;'>&#9679;</span><span style='color:#F97316;'>&#9679;</span><span style='color:#EF4444;'>&#9679;</span>",
+        "<span style='color:#F59E0B;'>&#9679;</span><span style='color:#EF4444;'>&#9679;</span><span style='color:#22C55E;'>&#9679;</span><span style='color:#F97316;'>&#9679;</span>"
     ];
     var h=pats.map(function(p,i){return '<div class="prob"><div class="idx">'+(i+1)+'</div><div style="font-size:1.3rem;margin:4px 0;">'+p+'</div><div style="height:28px;border:1px dashed #E8E2DA;border-radius:6px;margin-top:8px;"></div></div>';}).join('');
     openPrintWindow('색깔 따라하기 학습지','위의 색깔 순서를 따라 색칠해 보세요','<div class="grid">'+h+'</div>');
