@@ -615,10 +615,7 @@ setTimeout(function() {
 </div>
 
 <!-- Start View -->
-<div id="start-view" class="hidden" style="position:relative;">
-  <div style="position:absolute;top:8px;right:8px;display:flex;gap:4px;z-index:10;">
-    <button onclick="exportPDF()" style="background:white;border:2px solid #E8E2DA;border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#8C8070;" title="PDF 내보내기"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg></button>
-  </div>
+<div id="start-view" class="hidden">
   <div class="brand">
     <div class="turtle-svg">
       <svg viewBox="0 0 120 100" width="120" height="100" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1179,44 +1176,6 @@ function showComplete() {
   speak('모두 풀었어요! 잘했어요!');
   document.getElementById('retry-btn').addEventListener('click', () => startGame(gridSize));
   document.getElementById('home-btn').addEventListener('click', goHome);
-}
-
-function openPrintWindow(title, subtitle, bodyHTML) {
-    var css = '@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap");body{font-family:"Noto Sans KR",sans-serif;margin:15mm;color:#2A2020;}h1{font-size:1.3rem;font-weight:900;text-align:center;margin-bottom:4px;color:#4A4035;}.sub{text-align:center;font-size:0.8rem;color:#888;margin-bottom:6px;}.info{text-align:center;font-size:0.8rem;color:#888;margin-bottom:18px;padding-bottom:10px;border-bottom:1px solid #eee;}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;}.prob{border:1.5px solid #E8E2DA;border-radius:10px;padding:12px 6px;text-align:center;background:#FAFAF8;}.idx{font-size:0.6rem;color:#B8B0A8;margin-bottom:4px;}.print-btn{display:block;margin:16px auto 0;padding:10px 32px;background:#6BADE8;color:white;border:none;border-radius:8px;font-size:0.9rem;cursor:pointer;font-family:inherit;}@media print{.print-btn{display:none;}}';
-    var w = window.open('', '_blank');
-    w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + title + '</title><style>' + css + '</style></head><body>'
-        + '<h1>' + title + '</h1><p class="sub">' + subtitle + '</p>'
-        + '<p class="info">이름: _________________ &nbsp; 날짜: _________________ &nbsp; 점수: _____/20</p>'
-        + bodyHTML
-        + '<button class="print-btn" onclick="window.print()">하 인쇄 / PDF 저장</button>'
-        + '</body></html>');
-    w.document.close();
-}
-function exportPDF() {
-    var pats=[
-        "<span style="color:#EF4444;">&#9679;</span><span style="color:#3B82F6;">&#9679;</span><span style="color:#F59E0B;">&#9679;</span>",
-        "<span style="color:#22C55E;">&#9679;</span><span style="color:#F97316;">&#9679;</span><span style="color:#EF4444;">&#9679;</span>",
-        "<span style="color:#3B82F6;">&#9679;</span><span style="color:#F59E0B;">&#9679;</span><span style="color:#22C55E;">&#9679;</span>",
-        "<span style="color:#F97316;">&#9679;</span><span style="color:#EF4444;">&#9679;</span><span style="color:#3B82F6;">&#9679;</span>",
-        "<span style="color:#F59E0B;">&#9679;</span><span style="color:#22C55E;">&#9679;</span><span style="color:#F97316;">&#9679;</span>",
-        "<span style="color:#EF4444;">&#9679;</span><span style="color:#EF4444;">&#9679;</span><span style="color:#3B82F6;">&#9679;</span>",
-        "<span style="color:#F59E0B;">&#9679;</span><span style="color:#3B82F6;">&#9679;</span><span style="color:#F59E0B;">&#9679;</span>",
-        "<span style="color:#22C55E;">&#9679;</span><span style="color:#F97316;">&#9679;</span><span style="color:#22C55E;">&#9679;</span>",
-        "<span style="color:#3B82F6;">&#9679;</span><span style="color:#F59E0B;">&#9679;</span><span style="color:#EF4444;">&#9679;</span><span style="color:#22C55E;">&#9679;</span>",
-        "<span style="color:#F97316;">&#9679;</span><span style="color:#EF4444;">&#9679;</span><span style="color:#3B82F6;">&#9679;</span><span style="color:#F59E0B;">&#9679;</span>",
-        "<span style="color:#22C55E;">&#9679;</span><span style="color:#F59E0B;">&#9679;</span><span style="color:#F97316;">&#9679;</span><span style="color:#EF4444;">&#9679;</span>",
-        "<span style="color:#3B82F6;">&#9679;</span><span style="color:#F97316;">&#9679;</span><span style="color:#22C55E;">&#9679;</span><span style="color:#3B82F6;">&#9679;</span>",
-        "<span style="color:#EF4444;">&#9679;</span><span style="color:#F59E0B;">&#9679;</span><span style="color:#EF4444;">&#9679;</span><span style="color:#F59E0B;">&#9679;</span>",
-        "<span style="color:#3B82F6;">&#9679;</span><span style="color:#22C55E;">&#9679;</span><span style="color:#3B82F6;">&#9679;</span><span style="color:#22C55E;">&#9679;</span>",
-        "<span style="color:#F59E0B;">&#9679;</span><span style="color:#F97316;">&#9679;</span><span style="color:#F59E0B;">&#9679;</span><span style="color:#F97316;">&#9679;</span>",
-        "<span style="color:#EF4444;">&#9679;</span><span style="color:#3B82F6;">&#9679;</span><span style="color:#22C55E;">&#9679;</span><span style="color:#EF4444;">&#9679;</span>",
-        "<span style="color:#3B82F6;">&#9679;</span><span style="color:#3B82F6;">&#9679;</span><span style="color:#F59E0B;">&#9679;</span><span style="color:#22C55E;">&#9679;</span>",
-        "<span style="color:#EF4444;">&#9679;</span><span style="color:#F97316;">&#9679;</span><span style="color:#3B82F6;">&#9679;</span><span style="color:#F59E0B;">&#9679;</span>",
-        "<span style="color:#22C55E;">&#9679;</span><span style="color:#22C55E;">&#9679;</span><span style="color:#F97316;">&#9679;</span><span style="color:#EF4444;">&#9679;</span>",
-        "<span style="color:#F59E0B;">&#9679;</span><span style="color:#EF4444;">&#9679;</span><span style="color:#22C55E;">&#9679;</span><span style="color:#F97316;">&#9679;</span>"
-    ];
-    var h=pats.map(function(p,i){return '<div class="prob"><div class="idx">'+(i+1)+'</div><div style="font-size:1.3rem;margin:4px 0;">'+p+'</div><div style="height:28px;border:1px dashed #E8E2DA;border-radius:6px;margin-top:8px;"></div></div>';}).join('');
-    openPrintWindow('색깔 따라하기 학습지','위의 색깔 순서를 따라 색칠해 보세요','<div class="grid">'+h+'</div>');
 }
 
 // ===== Init =====
